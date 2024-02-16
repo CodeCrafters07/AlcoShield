@@ -257,9 +257,9 @@ contract QrCode {
         return manufacturerIDHashArr;
     }
 
-     //@dev views qrcodeHash and ID one by one
-    function getQrHashAndID(uint256 _blockId) private onlyManufacturer view returns (string memory _qrHash, _blockId) {
-        uint256[] ids = getManfItemIDList(); //gets list of id's; takes one and puts it to the qrHash mapping to get its corresponding hash which will then be used to match items
+     //@dev TO BE REVIEWEDDD!! views qrcodeHash and ID one by one. Used when manf wants to match stored ids & hashes to every item
+    function getQrHashAndID() private onlyManufacturer view returns (string memory _qrHash, _blockId) {
+        (uint256[] ids) = getManfItemIDList(); //gets list of id's; takes one and puts it to the qrHash mapping to get its corresponding hash which will then be used to match items
 
         _qrHash = qrHashMapByManufacturer[msg.sender][_blockId];
         return _qrHash, _blockId;  //used at addItemDetails
