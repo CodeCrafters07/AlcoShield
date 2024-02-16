@@ -2,16 +2,22 @@
 pragma solidity ^0.8.19;
 
 contract QrCode {
+    error HashIsntStored(uint blockId)
+
     event ManufacturerAdded(address indexed manufacturer);
     event RetailerAdded(address indexed retailer);
     event RetailerRemoved(address indexed retailer);
-    event ItemAdded(uint256 indexed id);
-    event ItemDetailsUpdated(
+
+    event PasswordChanged(address indexed admin);
+    event ownershipTransferred(address indexed newAdmin);
+
+    event ItemAdded_M(uint256 indexed id);
+    event ItemDetailsUpdated_M(
         uint256 indexed id,
         string itemName,
         string description
     );
-    event ItemRecorded(uint256 indexed id);
+    event ItemRecorded_M(uint256 indexed id);
     event qrHashStored(uint indexed timestamp);
     // event ItemNotFound(string qrHash);
 
@@ -22,7 +28,7 @@ contract QrCode {
         string email;
         string phoneNumber;
         bytes32 password;
-        bool isSignedUp;
+        bool isSignedUp; 
     }
 
     struct Retailer {
@@ -39,16 +45,18 @@ contract QrCode {
         string description;
     }
 
-    //@dev Josephat create system account structure
+    //@dev create system account structure
     struct SystemOwner {
         address sysOwner;
         bytes32 password /*audit*/;
         bool isLogin;
     }
 
-    address public owner;
+    address private owner;
+    SystemOwner public sysowner;
+
     uint256 private s_retailerID;
-    uint256 private item_ID;
+
 
     mapping(address => SystemOwner) public sysOwnerMap;
 
@@ -57,17 +65,19 @@ contract QrCode {
         public manufacturerToRetailerDetails;
     mapping(string => Retailer) public retailerDetails;
 
-    // mapping(address => mapping(string => uint256)) public identifiers;
-    // mapping(string => uint256) public hashToId;
+    //STORING
+    mapping(address => (mapping(uint256 => string))) private qrHashMapByManufacturer; // stored by manufacturer when generating hash + id
+    
+    uint256[] public manufacturerIDHashArr; //scanned by only manufacturer
+    mapping(uint => bool) private storedIDs; //just stored
+
+   //MATCHING
+    mapping(string => uint256) public matchHashToId; //used by users when scanning
+   
+    mapping(string => bool) public matchedItems; //matched hash to items
+
     mapping(uint256 => ItemDetails) public itemDetails;
-    mapping(string => bool) public recordedItems;
-
-    //@dev Josephat mapping
-    mapping(uint256 => string) private qrHashMap;
-    //@dev Josephat array
-    uint256[] public qrHashArr;
-
-    SystemOwner public sysowner;
+    
 
     constructor() {
         owner = msg.sender;
@@ -100,13 +110,47 @@ contract QrCode {
         _;
     }
 
-    // @dev Josephat transfer sysOwnership
+
+    /*@dev System Owner functions*/
+     function loginSysOwner(
+        bytes32 memory _password
+    ) external view onlySysOwner returns (bool) {
+        require(
+            bytes32(sysOwnerMap[msg.sender].password) ==
+                keccak256(abi.encode(_password)),
+            "Invalid password of account address"
+        );
+        sysOwnerMap[msg.sender].isLogin = true;
+        return true;
+    }
+
+    function changePassword(bytes32 memory oldPassword,bytes32 memory _newPassword) onlySysOwner external {
+         require(
+            bytes32(sysOwnerMap[msg.sender].password) ==
+                keccak256(abi.encode(oldPasswordpassword)),
+            "Invalid password of account address"
+        );
+        require(_newPassword.length > 0, "Password should not be empty");
+        require(
+            bytes32(sysOwnerMap[msg.sender].password) !=
+                keccak256(abi.encode(_newPassword)),
+            "Invalid password of account address"
+        );
+        require(sysOwnerMap[msg.sender].isLogin == true, "Not logged in");
+
+        emit PasswordChanged(msg.sender);
+        SystemOwner storage newSystemPassword = SystemOwner(,keccak256(abi.encode(_newPassword)),);
+    }
+
+
     function transferOwnership(address _address) external onlySysOwner {
         delete sysOwnerMap[owner];
+        emit ownershipTransferred(_address);
         owner = _address;
         sysOwnerMap[owner];
     }
 
+    /*@dev Manufacturer functions*/
     function signUp(
         string memory _manfName,
         string memory _location,
@@ -117,7 +161,7 @@ contract QrCode {
         require(msg.sender != address(0), "Address not valid");
         require(msg.sender != owner, "Address shouldn't be system owner");
         require(
-            !manufacturerDetails[msg.sender].isSignedUp,
+            manufacturerDetails[msg.sender].isSignedUp,
             "Manufacturer is already registered"
         );
         require(
@@ -151,39 +195,6 @@ contract QrCode {
         );
     }
 
-    //@dev Josephat login system for system owner
-    function loginSysOwner(
-        bytes32 memory _password
-    ) external view onlySysOwner returns (bool) {
-        require(
-            bytes(sysOwnerMap[msg.sender].password) ==
-                keccak256(abi.encode((_password))),
-            "Invalid password of account address"
-        );
-        sysOwnerMap[msg.sender].isLogin = true;
-        return true;
-    }
-
-    //@dev Josephat function to store data to the array storeQrHash executed by only manufacturer
-    function storeQrHash(string memory _qrHash) external onlyManufacturer {
-        uint timestamp = block.timestamp;
-        emit qrHashStored(timestamp);
-        qrHashMap[timestamp] = _qrHash;
-        qrHashArr.push(timestamp);
-    }
-
-    //@dev Josephat function to return qrcodeHash array to the manufacturer frontend
-    function getQrHashList() external view returns (uint256[] memory) {
-        return qrHashArr;
-    }
-
-    //@dev Josephat function to view qrcodeHash one by one
-    function getQrHash(
-        uint256 _blockId
-    ) external view returns (string memory _qrHash) {
-        _qrHash = qrHashMap[_blockId];
-        return _qrHash;
-    }
 
     function addRetailerInfo(
         address _retailer,
@@ -226,41 +237,69 @@ contract QrCode {
         ];
     }
 
+     function storeQrHash(string memory _qrHash) external onlyManufacturer {
+        uint timestamp = block.timestamp;
+        emit qrHashStored(timestamp);
+        qrHashMapByManufacturer[msg.sender][timestamp] = _qrHash;
+        manufacturerIDHashArr.push(timestamp); 
+        storedIDs[timestamp] = true;
+    }
+
+    function deleteQrHash(uint _blockId) external onlyManufacturer{
+        emit qrHashDeleted(_blockId);
+        delete qrHashMapByManufacturer[msg.sender][_blockId];
+        delete manufacturerIDHashArr[_blockId];
+        delete storedIDs[_blockId];
+    }
+
+     //@dev returns qrcodeHash array to the manufacturer frontend
+    function getManfItemIDList() private onlyManufacturer view returns (uint256[] memory) {
+        return manufacturerIDHashArr;
+    }
+
+     //@dev views qrcodeHash and ID one by one
+    function getQrHashAndID(uint256 _blockId) private onlyManufacturer view returns (string memory _qrHash, _blockId) {
+        uint256[] ids = getManfItemIDList(); //gets list of id's; takes one and puts it to the qrHash mapping to get its corresponding hash which will then be used to match items
+
+        _qrHash = qrHashMapByManufacturer[msg.sender][_blockId];
+        return _qrHash, _blockId;  //used at addItemDetails
+    }
+
+   
+    /*@dev matches the stored hashes to each item & returns a bool for evidence */
     function addItemDetails(
-        string memory _qrHash,
+        string memory qrHash,
+        uint _blockId,
         string memory _itemName,
         string memory _description
     ) external onlyManufacturer {
-        // require(identifiers[msg.sender][_qrHash] == 0, "Identifier already exists");
-        // require(hashToId[_qrHash] == 0, "Identifier already exists");
-        // require(!recordedItems[_qrHash], "Item already recorded");
-        // require(bytes(_itemName).length > 0, "Item name cannot be empty");
-        // require(bytes(_description).length > 0, "Description cannot be empty");
+        require(qrHashMapByManufacturer[msg.sender][_blockId], "Hash isn't stored");
+        require(manufacturerIDHashArr[_blockId], "ID isn't stored");
+        require(storedIDs[_blockId] == true, "ID isn't stored");
 
-        emit ItemAdded(item_ID);
-        emit ItemDetailsUpdated(item_ID, _itemName, _description);
-        emit ItemRecorded(item_ID);
+        require(bytes(_itemName).length > 0, "Item name cannot be empty");
+        require(bytes(_description).length > 0, "Description cannot be empty");
 
-        item_ID++;
-        // identifiers[msg.sender][_qrHash] = item_ID;
-        // hashToId[_qrHash] = item_ID;
-        itemDetails[item_ID] = ItemDetails(_itemName, _description);
-        recordedItems[_qrHash] = true;
+        emit ItemAdded_M(_blockId);
+        emit ItemDetailsUpdated_M(_blockId, _itemName, _description);
+        emit ItemRecorded_M(_blockId);
+
+        itemDetails[_blockId] = ItemDetails(_itemName, _description);
+        matchHashToId[qrHash] = _blockId;
+        matchedItems[_qrHash] = true;
     }
 
-    // function getItemIdentifier(string memory _qrHash) public view returns (uint256) {
-    //     return hashToId[_qrHash];
-    // }
-
     function scanItem(string memory _qrHash) external view returns (bool) {
-        if (recordedItems[_qrHash]) {
-            // return itemDetails[getItemIdentifier(_qrHash)];
+        if (matchedItems[_qrHash]) {
             return true;
         } else {
-            // emit ItemNotFound(_qrHash);
-            // return ItemDetails("", "");
             return false;
         }
+    }
+
+    function moreDetailsForScannedItem(string memory _qrHash)) external view returns (ItemDetails memory){
+        uint id = matchHashToId[_qrHash];
+        return itemDetails[id];
     }
 
     // @dev Josephat helpers Functions
