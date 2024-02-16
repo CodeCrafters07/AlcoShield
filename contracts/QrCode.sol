@@ -81,6 +81,10 @@ contract QrCode {
             msg.sender == owner,
             "Only system owner can perform this action"
         );
+        require(
+            msg.sender != address(0),
+            "Only system owner can perform this action"
+        );
         _;
     }
 
@@ -88,6 +92,10 @@ contract QrCode {
         require(
             manufacturerDetails[msg.sender].isSignedUp,
             "Only manufacturer can add retailer details"
+        );
+        require(
+            msg.sender != address(0),
+            "Only manufacturer can perform this action"
         );
         _;
     }
