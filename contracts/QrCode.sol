@@ -115,10 +115,7 @@ contract QrCode {
         bytes32 memory _password
     ) external {
         require(msg.sender != address(0), "Address not valid");
-<<<<<<< HEAD
-=======
         require(msg.sender != owner, "Address shouldn't be system owner");
->>>>>>> b3de84e (Hashed the passwords, changed phonenumbers to strings, added some checks)
         require(
             !manufacturerDetails[msg.sender].isSignedUp,
             "Manufacturer is already registered"
@@ -127,8 +124,6 @@ contract QrCode {
             bytes(_manfName).length > 0,
             "Manufacturer name cannot be empty"
         );
-<<<<<<< HEAD
-=======
         require(bytes(_location).length > 0, "Location name cannot be empty");
         require(bytes(_email).length > 0, "Email address cannot be empty");
         require(bytes(_phoneNumber).length > 0, "Phone number cannot be empty");
@@ -143,7 +138,6 @@ contract QrCode {
 
         // Hash the password with the salt
         bytes32 passwordHash = keccak256(abi.encode(_password, salt));
->>>>>>> b3de84e (Hashed the passwords, changed phonenumbers to strings, added some checks)
 
         emit ManufacturerAdded(msg.sender);
         manufacturerDetails[msg.sender] = Manufacturer(
@@ -159,18 +153,11 @@ contract QrCode {
 
     //@dev Josephat login system for system owner
     function loginSysOwner(
-<<<<<<< HEAD
-        string memory _password
-    ) external onlySysOwner returns (bool) {
-        require(
-            compareStrings(sysOwnerMap[msg.sender].password, _password),
-=======
         bytes32 memory _password
     ) external view onlySysOwner returns (bool) {
         require(
             bytes(sysOwnerMap[msg.sender].password) ==
                 keccak256(abi.encode((_password))),
->>>>>>> b3de84e (Hashed the passwords, changed phonenumbers to strings, added some checks)
             "Invalid password of account address"
         );
         sysOwnerMap[msg.sender].isLogin = true;
@@ -192,16 +179,10 @@ contract QrCode {
 
     //@dev Josephat function to view qrcodeHash one by one
     function getQrHash(
-<<<<<<< HEAD
-        uint256 _indeId
-    ) external view returns (string memory _qrHash) {
-        _qrHash = qrHashMap[_indeId];
-=======
         uint256 _blockId
     ) external view returns (string memory _qrHash) {
         _qrHash = qrHashMap[_blockId];
         return _qrHash;
->>>>>>> b3de84e (Hashed the passwords, changed phonenumbers to strings, added some checks)
     }
 
     function addRetailerInfo(
