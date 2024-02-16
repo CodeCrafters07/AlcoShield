@@ -6,7 +6,11 @@ contract QrCode {
     event RetailerAdded(address indexed retailer);
     event RetailerRemoved(address indexed retailer);
     event ItemAdded(uint256 indexed id);
-    event ItemDetailsUpdated(uint256 indexed id, string itemName, string description);
+    event ItemDetailsUpdated(
+        uint256 indexed id,
+        string itemName,
+        string description
+    );
     event ItemRecorded(uint256 indexed id);
     // event ItemNotFound(string qrHash);
 
@@ -45,7 +49,8 @@ contract QrCode {
     uint256 private item_ID;
 
     mapping(address => Manufacturer) public manufacturerDetails;
-    mapping(address => mapping(address => Retailer)) public manufacturerToRetailerDetails;
+    mapping(address => mapping(address => Retailer))
+        public manufacturerToRetailerDetails;
     mapping(string => Retailer) public retailerDetails;
 
     // mapping(address => mapping(string => uint256)) public identifiers;
@@ -70,7 +75,10 @@ contract QrCode {
 
     //@dev Josephat only owner condition
     modifier onlySysOwner() {
-        require(msg.sender == owner, "Only system owner can perform this action");
+        require(
+            msg.sender == owner,
+            "Only system owner can perform this action"
+        );
         _;
     }
 
@@ -94,8 +102,14 @@ contract QrCode {
         uint256 _phoneNumber
     ) external {
         require(msg.sender != address(0), "Address not valid");
-        require(!manufacturerDetails[msg.sender].isSignedUp, "Manufacturer is already registered");
-        require(bytes(_manfName).length > 0, "Manufacturer name cannot be empty");
+        require(
+            !manufacturerDetails[msg.sender].isSignedUp,
+            "Manufacturer is already registered"
+        );
+        require(
+            bytes(_manfName).length > 0,
+            "Manufacturer name cannot be empty"
+        );
 
         emit ManufacturerAdded(msg.sender);
         manufacturerDetails[msg.sender] = Manufacturer(
@@ -109,10 +123,11 @@ contract QrCode {
     }
 
     //@dev Josephat login system for system owner
-    function loginSysOwner(string memory _password) external view onlySysOwner returns (bool) {
+    function loginSysOwner(
+        string memory _password
+    ) external onlySysOwner returns (bool) {
         require(
-            bytes(sysOwnerMap[msg.sender].password) == bytes(_password)
-            ,
+            compareStrings(sysOwnerMap[msg.sender].password, _password),
             "Invalid password of account address"
         );
         sysOwnerMap[msg.sender].isLogin = true;
@@ -132,7 +147,9 @@ contract QrCode {
     }
 
     //@dev Josephat function to view qrcodeHash one by one
-    function++++ getQrHash(uint256 _indeId) external view returns (string memory _qrHash) {
+    function getQrHash(
+        uint256 _indeId
+    ) external view returns (string memory _qrHash) {
         _qrHash = qrHashMap[_indeId];
     }
 
@@ -154,17 +171,22 @@ contract QrCode {
             _email,
             _phoneNumber
         );
-        retailerDetails[_name] = manufacturerToRetailerDetails[msg.sender][_retailer];
+        retailerDetails[_name] = manufacturerToRetailerDetails[msg.sender][
+            _retailer
+        ];
     }
 
     function removeRetailer(address _retailer) external onlyManufacturer {
         require(
-            manufacturerToRetailerDetails[msg.sender][_retailer].retailer != address(0),
+            manufacturerToRetailerDetails[msg.sender][_retailer].retailer !=
+                address(0),
             "Retailer not found"
         );
         emit RetailerRemoved(_retailer);
         delete manufacturerToRetailerDetails[msg.sender][_retailer];
-        delete retailerDetails[manufacturerToRetailerDetails[msg.sender][_retailer].name];
+        delete retailerDetails[
+            manufacturerToRetailerDetails[msg.sender][_retailer].name
+        ];
     }
 
     function addItemDetails(
@@ -202,5 +224,16 @@ contract QrCode {
             // return ItemDetails("", "");
             return false;
         }
+    }
+
+    // @dev Josephat helpers Functions
+
+    // Cannot directly compare strings in Solidity
+    // This function hashes the 2 strings and then compares the 2 hashes
+    function compareStrings(
+        string memory a,
+        string memory b
+    ) internal pure returns (bool) {
+        return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 }
