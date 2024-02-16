@@ -12,6 +12,7 @@ contract QrCode {
         string description
     );
     event ItemRecorded(uint256 indexed id);
+    event qrHashStored(uint indexed timestamp);
     // event ItemNotFound(string qrHash);
 
     struct Manufacturer {
@@ -19,7 +20,8 @@ contract QrCode {
         string name;
         string location;
         string email;
-        uint256 phoneNumber;
+        string phoneNumber;
+        bytes32 password;
         bool isSignedUp;
     }
 
@@ -29,7 +31,7 @@ contract QrCode {
         string name;
         string location;
         string email;
-        uint256 phoneNumber;
+        string phoneNumber;
     }
 
     struct ItemDetails {
@@ -40,13 +42,15 @@ contract QrCode {
     //@dev Josephat create system account structure
     struct SystemOwner {
         address sysOwner;
-        string password;
+        bytes32 password /*audit*/;
         bool isLogin;
     }
 
     address public owner;
     uint256 private s_retailerID;
     uint256 private item_ID;
+
+    mapping(address => SystemOwner) public sysOwnerMap;
 
     mapping(address => Manufacturer) public manufacturerDetails;
     mapping(address => mapping(address => Retailer))
@@ -60,8 +64,6 @@ contract QrCode {
 
     //@dev Josephat mapping
     mapping(uint256 => string) private qrHashMap;
-    mapping(address => SystemOwner) public sysOwnerMap;
-
     //@dev Josephat array
     uint256[] public qrHashArr;
 
@@ -69,7 +71,7 @@ contract QrCode {
 
     constructor() {
         owner = msg.sender;
-        sysowner = SystemOwner(owner, "admin", false);
+        sysowner = SystemOwner(owner, keccak256(abi.encode(("admin"))), false);
         sysOwnerMap[owner] = sysowner;
     }
 
@@ -91,17 +93,24 @@ contract QrCode {
     }
 
     // @dev Josephat transfer sysOwnership
-    function transerOwership(address _address) external onlySysOwner {
+    function transferOwnership(address _address) external onlySysOwner {
+        delete sysOwnerMap[owner];
         owner = _address;
+        sysOwnerMap[owner];
     }
 
     function signUp(
         string memory _manfName,
         string memory _location,
         string memory _email,
-        uint256 _phoneNumber
+        string _phoneNumber,
+        bytes32 memory _password
     ) external {
         require(msg.sender != address(0), "Address not valid");
+<<<<<<< HEAD
+=======
+        require(msg.sender != owner, "Address shouldn't be system owner");
+>>>>>>> b3de84e (Hashed the passwords, changed phonenumbers to strings, added some checks)
         require(
             !manufacturerDetails[msg.sender].isSignedUp,
             "Manufacturer is already registered"
@@ -110,6 +119,23 @@ contract QrCode {
             bytes(_manfName).length > 0,
             "Manufacturer name cannot be empty"
         );
+<<<<<<< HEAD
+=======
+        require(bytes(_location).length > 0, "Location name cannot be empty");
+        require(bytes(_email).length > 0, "Email address cannot be empty");
+        require(bytes(_phoneNumber).length > 0, "Phone number cannot be empty");
+        require(bytes(_password).length > 0, "Email address cannot be empty");
+
+        // Generate a salt (you can use a random number or a unique value)
+        bytes32 salt = bytes32(
+            uint256(
+                keccak256(abi.encodePacked(block.timestamp, block.difficulty))
+            )
+        );
+
+        // Hash the password with the salt
+        bytes32 passwordHash = keccak256(abi.encode(_password, salt));
+>>>>>>> b3de84e (Hashed the passwords, changed phonenumbers to strings, added some checks)
 
         emit ManufacturerAdded(msg.sender);
         manufacturerDetails[msg.sender] = Manufacturer(
@@ -118,16 +144,25 @@ contract QrCode {
             _location,
             _email,
             _phoneNumber,
+            passwordHash,
             true
         );
     }
 
     //@dev Josephat login system for system owner
     function loginSysOwner(
+<<<<<<< HEAD
         string memory _password
     ) external onlySysOwner returns (bool) {
         require(
             compareStrings(sysOwnerMap[msg.sender].password, _password),
+=======
+        bytes32 memory _password
+    ) external view onlySysOwner returns (bool) {
+        require(
+            bytes(sysOwnerMap[msg.sender].password) ==
+                keccak256(abi.encode((_password))),
+>>>>>>> b3de84e (Hashed the passwords, changed phonenumbers to strings, added some checks)
             "Invalid password of account address"
         );
         sysOwnerMap[msg.sender].isLogin = true;
@@ -137,6 +172,7 @@ contract QrCode {
     //@dev Josephat function to store data to the array storeQrHash executed by only manufacturer
     function storeQrHash(string memory _qrHash) external onlyManufacturer {
         uint timestamp = block.timestamp;
+        emit qrHashStored(timestamp);
         qrHashMap[timestamp] = _qrHash;
         qrHashArr.push(timestamp);
     }
@@ -148,9 +184,16 @@ contract QrCode {
 
     //@dev Josephat function to view qrcodeHash one by one
     function getQrHash(
+<<<<<<< HEAD
         uint256 _indeId
     ) external view returns (string memory _qrHash) {
         _qrHash = qrHashMap[_indeId];
+=======
+        uint256 _blockId
+    ) external view returns (string memory _qrHash) {
+        _qrHash = qrHashMap[_blockId];
+        return _qrHash;
+>>>>>>> b3de84e (Hashed the passwords, changed phonenumbers to strings, added some checks)
     }
 
     function addRetailerInfo(
@@ -158,9 +201,14 @@ contract QrCode {
         string memory _name,
         string memory _location,
         string memory _email,
-        uint256 _phoneNumber
+        string _phoneNumber
     ) external onlyManufacturer {
         require(_retailer != address(0), "Retailer address cannot be zero");
+        require(bytes(_name).length > 0, "Manufacturer name cannot be empty");
+        require(bytes(_location).length > 0, "Location name cannot be empty");
+        require(bytes(_email).length > 0, "Email address cannot be empty");
+        require(bytes(_phoneNumber).length > 0, "Phone number cannot be empty");
+
         emit RetailerAdded(_retailer);
         s_retailerID++;
         manufacturerToRetailerDetails[msg.sender][_retailer] = Retailer(
