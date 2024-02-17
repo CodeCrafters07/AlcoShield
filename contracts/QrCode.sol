@@ -16,8 +16,8 @@ contract QrCode {
         string description
     );
     event ItemRecorded_M(uint256 indexed id);
+
     event qrHashStored(uint indexed timestamp);
-    // event ItemNotFound(string qrHash);
     event qrHashDeleted(uint256 _blockId);
 
     struct Manufacturer {
@@ -137,8 +137,6 @@ contract QrCode {
         require(sysOwnerMap[msg.sender].isLogin == true, "Not logged in");
 
         emit PasswordChanged(msg.sender);
-
-        // sysowner = SystemOwner(,keccak256(abi.encode(_newPassword)),);
         sysOwnerMap[msg.sender].password = _newPassword;
     }
 
