@@ -69,7 +69,7 @@ const GenerateQrCode = () => {
     const handleStoreQrCodeHash = async (event) => {
         try {
             const abi = qrCodeContract.abi
-            const address = qrCodeContract.networks[5777].address
+            const address = qrCodeContract.networks[1337].address
             const contract = new web3.eth.Contract(abi, address)
             console.log("contract", contract)
 

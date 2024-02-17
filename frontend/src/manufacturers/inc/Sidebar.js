@@ -17,7 +17,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         { title: "Dashboard", link: "/manufacturer/dashboard", icon: <MdDashboard /> },
         {
             title: "Generate QrCode",
-            link: "/generate-qrcode",
+            link: "/manufacturer/generate-qrcode",
             icon: <FaChartPie />,
         },
         {

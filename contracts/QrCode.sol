@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 contract QrCode {
-    error HashIsntStored(uint blockId)
+    error HashIsntStored(uint blockId);
 
     event ManufacturerAdded(address indexed manufacturer);
     event RetailerAdded(address indexed retailer);
@@ -20,6 +20,7 @@ contract QrCode {
     event ItemRecorded_M(uint256 indexed id);
     event qrHashStored(uint indexed timestamp);
     // event ItemNotFound(string qrHash);
+    event qrHashDeleted(uint256 _blockId);
 
     struct Manufacturer {
         address manufacturer;
@@ -28,7 +29,7 @@ contract QrCode {
         string email;
         string phoneNumber;
         bytes32 password;
-        bool isSignedUp; 
+        bool isSignedUp;
     }
 
     struct Retailer {
@@ -57,7 +58,6 @@ contract QrCode {
 
     uint256 private s_retailerID;
 
-
     mapping(address => SystemOwner) public sysOwnerMap;
 
     mapping(address => Manufacturer) public manufacturerDetails;
@@ -66,18 +66,18 @@ contract QrCode {
     mapping(string => Retailer) public retailerDetails;
 
     //STORING
-    mapping(address => (mapping(uint256 => string))) private qrHashMapByManufacturer; // stored by manufacturer when generating hash + id
-    
+    mapping(address => mapping(uint256 => string))
+        private qrHashMapByManufacturer; // stored by manufacturer when generating hash + id
+
     uint256[] public manufacturerIDHashArr; //scanned by only manufacturer
     mapping(uint => bool) private storedIDs; //just stored
 
-   //MATCHING
+    //MATCHING
     mapping(string => uint256) public matchHashToId; //used by users when scanning
-   
+
     mapping(string => bool) public matchedItems; //matched hash to items
 
     mapping(uint256 => ItemDetails) public itemDetails;
-    
 
     constructor() {
         owner = msg.sender;
@@ -110,11 +110,10 @@ contract QrCode {
         _;
     }
 
-
     /*@dev System Owner functions*/
-     function loginSysOwner(
-        bytes32 memory _password
-    ) external view onlySysOwner returns (bool) {
+    function loginSysOwner(
+        bytes32 _password
+    ) external onlySysOwner returns (bool) {
         require(
             bytes32(sysOwnerMap[msg.sender].password) ==
                 keccak256(abi.encode(_password)),
@@ -124,10 +123,13 @@ contract QrCode {
         return true;
     }
 
-    function changePassword(bytes32 memory oldPassword,bytes32 memory _newPassword) onlySysOwner external {
-         require(
+    function changePassword(
+        bytes32 oldPassword,
+        bytes32 _newPassword
+    ) external onlySysOwner {
+        require(
             bytes32(sysOwnerMap[msg.sender].password) ==
-                keccak256(abi.encode(oldPasswordpassword)),
+                keccak256(abi.encode(oldPassword)),
             "Invalid password of account address"
         );
         require(_newPassword.length > 0, "Password should not be empty");
@@ -139,9 +141,10 @@ contract QrCode {
         require(sysOwnerMap[msg.sender].isLogin == true, "Not logged in");
 
         emit PasswordChanged(msg.sender);
-        SystemOwner storage newSystemPassword = SystemOwner(,keccak256(abi.encode(_newPassword)),);
+        // SystemOwner storage newSystemPassword = SystemOwner(,keccak256(abi.encode(_newPassword)),);
+        // sysowner = SystemOwner(,keccak256(abi.encode(_newPassword)),);
+        sysOwnerMap[msg.sender].password = _newPassword;
     }
-
 
     function transferOwnership(address _address) external onlySysOwner {
         delete sysOwnerMap[owner];
@@ -155,8 +158,8 @@ contract QrCode {
         string memory _manfName,
         string memory _location,
         string memory _email,
-        string _phoneNumber,
-        bytes32 memory _password
+        string memory _phoneNumber,
+        bytes32 _password
     ) external {
         require(msg.sender != address(0), "Address not valid");
         require(msg.sender != owner, "Address shouldn't be system owner");
@@ -171,12 +174,12 @@ contract QrCode {
         require(bytes(_location).length > 0, "Location name cannot be empty");
         require(bytes(_email).length > 0, "Email address cannot be empty");
         require(bytes(_phoneNumber).length > 0, "Phone number cannot be empty");
-        require(bytes(_password).length > 0, "Email address cannot be empty");
+        require(_password.length > 0, "Email address cannot be empty");
 
         // Generate a salt (you can use a random number or a unique value)
         bytes32 salt = bytes32(
             uint256(
-                keccak256(abi.encodePacked(block.timestamp, block.difficulty))
+                keccak256(abi.encodePacked(block.timestamp, block.prevrandao))
             )
         );
 
@@ -195,13 +198,12 @@ contract QrCode {
         );
     }
 
-
     function addRetailerInfo(
         address _retailer,
         string memory _name,
         string memory _location,
         string memory _email,
-        string _phoneNumber
+        string memory _phoneNumber
     ) external onlyManufacturer {
         require(_retailer != address(0), "Retailer address cannot be zero");
         require(bytes(_name).length > 0, "Manufacturer name cannot be empty");
@@ -237,44 +239,59 @@ contract QrCode {
         ];
     }
 
-     function storeQrHash(string memory _qrHash) external onlyManufacturer {
+    function storeQrHash(string memory _qrHash) external onlyManufacturer {
         uint timestamp = block.timestamp;
         emit qrHashStored(timestamp);
         qrHashMapByManufacturer[msg.sender][timestamp] = _qrHash;
-        manufacturerIDHashArr.push(timestamp); 
+        manufacturerIDHashArr.push(timestamp);
         storedIDs[timestamp] = true;
     }
 
-    function deleteQrHash(uint _blockId) external onlyManufacturer{
+    function deleteQrHash(uint _blockId) external onlyManufacturer {
         emit qrHashDeleted(_blockId);
         delete qrHashMapByManufacturer[msg.sender][_blockId];
         delete manufacturerIDHashArr[_blockId];
         delete storedIDs[_blockId];
     }
 
-     //@dev returns qrcodeHash array to the manufacturer frontend
-    function getManfItemIDList() private onlyManufacturer view returns (uint256[] memory) {
+    //@dev returns qrcodeHash array to the manufacturer frontend
+    function getManfItemIDList()
+        public
+        view
+        onlyManufacturer
+        returns (uint256[] memory)
+    {
         return manufacturerIDHashArr;
     }
 
-     //@dev TO BE REVIEWEDDD!! views qrcodeHash and ID one by one. Used when manf wants to match stored ids & hashes to every item
-    function getQrHashAndID() private onlyManufacturer view returns (string memory _qrHash, _blockId) {
-        (uint256[] ids) = getManfItemIDList(); //gets list of id's; takes one and puts it to the qrHash mapping to get its corresponding hash which will then be used to match items
+    //@dev TO BE REVIEWEDDD!! views qrcodeHash and ID one by one. Used when manf wants to match stored ids & hashes to every item
+    function getQrHashAndID()
+        private
+        view
+        onlyManufacturer
+        returns (string memory _qrHash, uint256 _blockId)
+    {
+        // uint256[] memory ids = getManfItemIDList(); //gets list of id's; takes one and puts it to the qrHash mapping to get its corresponding hash which will then be used to match items
 
         _qrHash = qrHashMapByManufacturer[msg.sender][_blockId];
-        return _qrHash, _blockId;  //used at addItemDetails
+        return (_qrHash, _blockId); //used at addItemDetails
     }
 
-   
     /*@dev matches the stored hashes to each item & returns a bool for evidence */
     function addItemDetails(
-        string memory qrHash,
-        uint _blockId,
+        string memory _qrHash,
+        uint256 _blockId,
         string memory _itemName,
         string memory _description
     ) external onlyManufacturer {
-        require(qrHashMapByManufacturer[msg.sender][_blockId], "Hash isn't stored");
-        require(manufacturerIDHashArr[_blockId], "ID isn't stored");
+        // require(
+        //     compareStrings(
+        //         qrHashMapByManufacturer[msg.sender][_blockId],
+        //         _qrHash
+        //     ),
+        //     "Hash isn't stored"
+        // );
+        // require(manufacturerIDHashArr[_blockId], "ID isn't stored");
         require(storedIDs[_blockId] == true, "ID isn't stored");
 
         require(bytes(_itemName).length > 0, "Item name cannot be empty");
@@ -285,7 +302,7 @@ contract QrCode {
         emit ItemRecorded_M(_blockId);
 
         itemDetails[_blockId] = ItemDetails(_itemName, _description);
-        matchHashToId[qrHash] = _blockId;
+        matchHashToId[_qrHash] = _blockId;
         matchedItems[_qrHash] = true;
     }
 
@@ -297,7 +314,9 @@ contract QrCode {
         }
     }
 
-    function moreDetailsForScannedItem(string memory _qrHash)) external view returns (ItemDetails memory){
+    function moreDetailsForScannedItem(
+        string memory _qrHash
+    ) external view returns (ItemDetails memory) {
         uint id = matchHashToId[_qrHash];
         return itemDetails[id];
     }

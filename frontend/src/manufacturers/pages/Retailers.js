@@ -29,7 +29,7 @@ const Retailers = () => {
                     {/* Manufacturers RetailerTable component is included */}
                     <div className="w-4/5">
                         <Link
-                            to={"/add-retailer"}
+                            to={"/manufacturer/add-retailer"}
                             className="bg-blue-500 mb-3 text-lg float-end text-white dark:bg-transparent hover:text-white dark:shadow-md dark:shadow-light-white dark:border dark:border-blue-500 dark:text-gray-500 hover:bg-blue-700  font-bold py-2 px-4 rounded-lg top-4 right-4"
                         >
                             Add Retailer

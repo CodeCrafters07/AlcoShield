@@ -5,7 +5,7 @@ import qrCodeContract from "../../abi/QrCode.json"
 
 const networkId = "http://127.0.0.1:7545"
 
-const QrCodeHashTable = () => {
+const ManufacturerProfile = () => {
   const [hoveredRow, setHoveredRow] = useState(null);
   // const [web3, setWeb3] = useState(null)
   const [qrHash, setQrHash] = useState([])
@@ -117,4 +117,4 @@ const QrCodeHashTable = () => {
   );
 };
 
-export default QrCodeHashTable;
+export default ManufacturerProfile;

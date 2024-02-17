@@ -46,7 +46,7 @@ const SysOwnerLogin = () => {
         init()
     }, [])
 
-    const handleManufacturerLogin = async (event) => {
+    const handleSysOwnerLogin = async (event) => {
         if (web3 && userAccounts.length > 0) {
             try {
                 // const web3 = new Web3()
@@ -69,6 +69,8 @@ const SysOwnerLogin = () => {
                 const result = await contract.methods
                     .loginSysOwner(passwordHash)
                     .send({ from: selectedAccount, gas: 1000000 })
+
+                    console.log("Login resule: ", result)
 
                 if (result) {
                     window.location.hash = "/sys/dashboard"
@@ -99,12 +101,12 @@ const SysOwnerLogin = () => {
     }
 
     const initialValues = {
-        publicAddress: "",
+        // publicAddress: "",
         password: "",
     }
 
     const validationSchema = Yup.object().shape({
-        publicAddress: Yup.string().required("Public Address is required"),
+        // publicAddress: Yup.string().required("Public Address is required"),
         password: Yup.string().required("Password is required"),
     })
 
@@ -116,7 +118,7 @@ const SysOwnerLogin = () => {
         // console.log("pubilic address",values.publicAddress)
         setPassword(values.password)
 
-        handleManufacturerLogin()
+        handleSysOwnerLogin()
         setSubmitting(false)
     }
 
