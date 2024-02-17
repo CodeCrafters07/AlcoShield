@@ -60,7 +60,7 @@ contract QrCode {
     mapping(address => SystemOwner) private sysOwnerMap;
 
     mapping(address => Manufacturer) public manufacturerDetails;
-    mapping(address => mapping (uint => Retailer))
+    mapping(address => mapping(uint => Retailer))
         public manufacturerToRetailerDetails;
     mapping(string => Retailer) public retailerDetails;
 
@@ -115,8 +115,8 @@ contract QrCode {
         require(
             sysOwnerMap[msg.sender].password ==
                 keccak256(abi.encode(_password)),
-            "Invalid password of account address")
-        ;
+            "Invalid password of account address"
+        );
         sysOwnerMap[msg.sender].isLogin = true;
         return true;
     }
@@ -126,15 +126,9 @@ contract QrCode {
         bytes32 _newPassword
     ) external onlySysOwner {
         require(
-<<<<<<< HEAD
-            sysOwnerMap[msg.sender].password) ==
-                keccak256(abi.encode(oldPassword),
-            "Invalid password of account address"
-=======
-            bytes32(sysOwnerMap[msg.sender].password) ==
+            sysOwnerMap[msg.sender].password ==
                 keccak256(abi.encode(oldPassword)),
             "Invalid old password"
->>>>>>> a0ffd2e (Creating manufacturing profile and others)
         );
         require(_newPassword.length > 0, "Password should not be empty");
         require(
@@ -145,8 +139,8 @@ contract QrCode {
         require(sysOwnerMap[msg.sender].isLogin == true, "Not logged in");
 
         emit PasswordChanged(msg.sender);
-       
-        sysowner = SystemOwner(,keccak256(abi.encode(_newPassword)),);
+
+        // sysowner = SystemOwner(,keccak256(abi.encode(_newPassword)),);
         sysOwnerMap[msg.sender].password = _newPassword;
     }
 
@@ -203,13 +197,11 @@ contract QrCode {
     }
 
     function addRetailerInfo(
-        
         string memory _name,
         string memory _location,
         string memory _email,
         string memory _phoneNumber
     ) external onlyManufacturer {
-       
         require(bytes(_name).length > 0, "Manufacturer name cannot be empty");
         require(bytes(_location).length > 0, "Location name cannot be empty");
         require(bytes(_email).length > 0, "Email address cannot be empty");
@@ -224,7 +216,9 @@ contract QrCode {
             _email,
             _phoneNumber
         );
-        retailerDetails[_name] =  manufacturerToRetailerDetails[msg.sender][s_retailerID];
+        retailerDetails[_name] = manufacturerToRetailerDetails[msg.sender][
+            s_retailerID
+        ];
     }
 
     function removeRetailer(uint256 _retailerID) external onlyManufacturer {
@@ -266,18 +260,16 @@ contract QrCode {
     }
 
     //@dev !! views qrcodeHash and ID one by one. Used when manf wants to match stored ids & hashes to every item
-     function getQrHashAndID()
+    function getQrHashAndID()
         private
         view
         onlyManufacturer
         returns (string memory _qrHash, uint256 _blockId)
     {
         _qrHash = qrHashMapByManufacturer[msg.sender][_blockId];
-        
+
         return (_qrHash, _blockId); //used at addItemDetails
     }
-
-    
 
     /*@dev matches the stored hashes to each item & returns a bool for evidence */
     function addItemDetails(
@@ -286,13 +278,13 @@ contract QrCode {
         string memory _itemName,
         string memory _description
     ) external onlyManufacturer {
-         require(
-           compareStrings(
+        require(
+            compareStrings(
                 qrHashMapByManufacturer[msg.sender][_blockId],
-               _qrHash
-             ),
+                _qrHash
+            ),
             "Hash isn't stored"
-         );
+        );
         require(storedIDs[_blockId] == true, "ID isn't stored");
         require(bytes(_itemName).length > 0, "Item name cannot be empty");
         require(bytes(_description).length > 0, "Description cannot be empty");
@@ -302,7 +294,7 @@ contract QrCode {
         emit ItemRecorded_M(_blockId);
 
         matchHashToId[_qrHash] = _blockId; //update by matching
-        matchedItems[qrHash] = true;
+        matchedItems[_qrHash] = true;
 
         itemDetails[_blockId] = ItemDetails(_itemName, _description);
     }
