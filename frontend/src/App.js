@@ -14,6 +14,7 @@ import AddProduct from "./manufacturers/pages/AddProduct"
 import Home from "./Home"
 import SysOwnerLogin from "./sysOwner/pages/auth/SysOwnerLogin"
 import SysOwnerDashboard from "./sysOwner/pages/SysOwnerDashboard"
+import Profile from "./manufacturers/pages/Profile"
 
 const App = () => {
     return (
@@ -37,6 +38,7 @@ const App = () => {
                 <Route path="/manufacturer/retailers" element={<RegisterRetailers />} />
                 <Route path="/manufacturer/add-retailer" element={<AddRetailers />} />
                 <Route path="/manufacturer/add-product" element={<AddProduct />} />
+                <Route path="/manufacturer/profile" element={<Profile />} />
 
                 {/* Manufacturer Auth */}
                 <Route path="/manufacturer/login" element={<LoginManufacturer />} />

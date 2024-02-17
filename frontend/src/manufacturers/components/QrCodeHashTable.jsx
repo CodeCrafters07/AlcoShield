@@ -3,7 +3,7 @@ import Web3 from "web3"
 import qrCodeContract from "../../abi/QrCode.json"
 
 
-const networkId = "http://127.0.0.1:7545"
+const networkId = "http://127.0.0.1:8545"
 
 const QrCodeHashTable = () => {
   const [hoveredRow, setHoveredRow] = useState(null);

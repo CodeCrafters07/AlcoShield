@@ -126,15 +126,21 @@ contract QrCode {
         bytes32 _newPassword
     ) external onlySysOwner {
         require(
+<<<<<<< HEAD
             sysOwnerMap[msg.sender].password) ==
                 keccak256(abi.encode(oldPassword),
             "Invalid password of account address"
+=======
+            bytes32(sysOwnerMap[msg.sender].password) ==
+                keccak256(abi.encode(oldPassword)),
+            "Invalid old password"
+>>>>>>> a0ffd2e (Creating manufacturing profile and others)
         );
         require(_newPassword.length > 0, "Password should not be empty");
         require(
             sysOwnerMap[msg.sender].password !=
                 keccak256(abi.encode(_newPassword)),
-            "Invalid password of account address"
+            "Invalid new password"
         );
         require(sysOwnerMap[msg.sender].isLogin == true, "Not logged in");
 

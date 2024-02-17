@@ -92,7 +92,7 @@ const Header = ({ isOpen, toggleSidebar, isAuth }) => {
           <IoIosArrowDown className={`flex items-center text-2xl text-gray-500`} onClick={toggleDropdown}/>
           {isDropdownOpen && (
             <div className="absolute text-base mt-2 w-32 top-16 right-1 bg-white shadow-sm text-gray-800 border border-gray-300 rounded-md transition-all duration-300 dark:bg-[#212936] dark:text-gray-500 dark:border-gray-700">
-              <Link to={"/profile"} className="flex items-center gap-x-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-transparent dark:hover:border dark:hover:border-blue-500"><FaInfoCircle /> Profile</Link>
+              <Link to={"/sys/profile"} className="flex items-center gap-x-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-transparent dark:hover:border dark:hover:border-blue-500"><FaInfoCircle /> Profile</Link>
               <Link to="/sys/auth" className="flex items-center gap-x-2 px-4 py-2 underline-none hover:bg-gray-100 dark:hover:bg-transparent dark:hover:border dark:hover:border-blue-500"><MdLogout /> Logout</Link>
             </div>
           )}
