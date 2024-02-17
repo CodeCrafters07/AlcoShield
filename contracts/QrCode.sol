@@ -2,8 +2,6 @@
 pragma solidity ^0.8.19;
 
 contract QrCode {
-    error HashIsntStored(uint blockId);
-
     event ManufacturerAdded(address indexed manufacturer);
     event RetailerAdded(string retailer);
     event RetailerRemoved(uint256 indexed retailerID);
