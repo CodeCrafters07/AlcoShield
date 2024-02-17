@@ -4,29 +4,22 @@ import React, { useEffect, useState } from "react"
 import { Formik, Form, Field, ErrorMessage } from "formik"
 import * as Yup from "yup"
 // import { Link } from "react-router-dom"
-import swal from "sweetalert"
+// import swal from "sweetalert"
 import Web3 from "web3"
 import qrCodeContract from "../../../abi/QrCode.json"
 
-const ManufacturerLogin = () => {
-    const [isSidebarOpen, setSidebarOpen] = useState(false)
+const SysOwnerLogin = () => {
+    // const [isSidebarOpen, setSidebarOpen] = useState(false)
     const [password, setPassword] = useState("")
-    const [email, setEmail] = useState("")
+    // const [publicAddress, setpublicAddress] = useState("")
 
     //   const [data, setData] = useState("");
 
     const [web3, setWeb3] = useState(null)
-    const [errorMessage, setErrorMessage] = useState("")
+    // const [errorMessage, setErrorMessage] = useState("")
     const [userAccounts, setUserAccounts] = useState("")
 
     // const [sessionId, setSessionId] = useState("");
-
-    const toggleSidebar = () => {
-        setSidebarOpen(!isSidebarOpen)
-    }
-    //   componentWillMount() {
-    //    console.log("hellow world");
-    //   };
 
     useEffect(() => {
         // console.log('hellow world');
@@ -74,7 +67,7 @@ const ManufacturerLogin = () => {
                 )
                 console.log("Hashed password", passwordHash)
                 const result = await contract.methods
-                    .loginManufacturer(email, passwordHash)
+                    .loginSysOwner(passwordHash)
                     .send({ from: selectedAccount, gas: 1000000 })
 
                 if (result) {
@@ -106,12 +99,12 @@ const ManufacturerLogin = () => {
     }
 
     const initialValues = {
-        email: "",
+        publicAddress: "",
         password: "",
     }
 
     const validationSchema = Yup.object().shape({
-        email: Yup.string().required("Email is required"),
+        publicAddress: Yup.string().required("Public Address is required"),
         password: Yup.string().required("Password is required"),
     })
 
@@ -119,10 +112,12 @@ const ManufacturerLogin = () => {
         // Perform registration or login (this is where you would send data to the server)
         console.log("Authentication successful!", values)
         // setData(values);
-        setEmail(values.email)
+        // setpublicAddress(values.publicAddress)
+        // console.log("pubilic address",values.publicAddress)
         setPassword(values.password)
 
         handleManufacturerLogin()
+        setSubmitting(false)
     }
 
     return (
@@ -139,11 +134,9 @@ const ManufacturerLogin = () => {
                     {/* Manufacturers Header component is included */}
 
                     <div
-                        className={`w-4/5 px-4  md:w-3/4 lg:w-1/3 mt-8 pb-6 flex-col items-center justify-center shadow-md bg-gray-100 dark:bg-transparent dark:border dark:border-blue-500 dark:shadow-md dark:rounded-md dark:shadow-gray-400`}
+                        className={`w-4/5 px-4  md:w-1/2 lg:w-1/3 mt-8 pb-6 flex-col items-center justify-center shadow-md bg-gray-100 dark:bg-transparent dark:border dark:border-blue-500 dark:shadow-md dark:rounded-md dark:shadow-gray-400`}
                     >
-                        <h2 className="flex justify-center text-2xl md:text-4xl font-bold mt-4 pt-3">
-                            Manufacturer Login
-                        </h2>
+                        <h2 className="flex justify-center text-2xl md:text-3xl lg:text-4xl text-gray-800 font-bold mt-4 pt-3">System Authentication</h2>
                         <hr className="w-full dark:border-gray-500 dark:h-1 mt-6" />
 
                         <div className=" w-full rounded-md p-6 mt-4 bg-white dark:bg-transparent dark:text-gray-300">
@@ -154,26 +147,26 @@ const ManufacturerLogin = () => {
                             >
                                 {({ isSubmitting }) => (
                                     <Form>
-                                        <div className="mb-4">
+                                        {/* <div className="mb-4">
                                             <label
-                                                htmlFor="email"
+                                                htmlFor="publicAddress"
                                                 className="block text-sm font-medium text-gray-600 dark:text-gray-300"
                                             >
-                                                email:
+                                                Public Address:
                                             </label>
                                             <Field
                                                 type="text"
-                                                id="email"
-                                                name="email"
+                                                id="publicAddress"
+                                                name="publicAddress"
                                                 className="mt-1 px-3 py-1.5 md:py-2 w-full border border-solid border-gray-600 rounded-md dark:bg-transparent text-gray-700 bg-clip-padding"
-                                                placeholder="Enter your email"
+                                                placeholder="Enter your publicAddress"
                                             />
                                             <ErrorMessage
-                                                name="email"
+                                                name="publicAddress"
                                                 component="div"
                                                 className="text-red-500 text-sm mt-1"
                                             />
-                                        </div>
+                                        </div> */}
 
                                         <div className="mb-4">
                                             <label
@@ -214,4 +207,4 @@ const ManufacturerLogin = () => {
     )
 }
 
-export default ManufacturerLogin
+export default SysOwnerLogin

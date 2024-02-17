@@ -14,22 +14,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     // const [selected, setSelected] = useState(true);
 
     const Menus = [
-        { title: "Dashboard", link: "/manufacturer/dashboard", icon: <MdDashboard /> },
-        {
-            title: "Generate QrCode",
-            link: "/generate-qrcode",
-            icon: <FaChartPie />,
-        },
-        {
-            title: "ViewQrCode",
-            link: "/manufacturer/qrcodes",
-            icon: <BsQrCode />,
-            dropdown: true,
-        },
-        { title: "Retailers", link: "/manufacturer/retailers", icon: <FaUser /> },
-        { title: "View Fake Products", link: "/manufacturer/fake-product", icon: <FaKeycdn /> },
-        // { title: "Customer", link: "/customer", icon: <FaUser /> },
-        { title: "Add Products", link: "/manufacturer/add-product", icon: <BsDatabaseFillAdd /> },
+        { title: "Dashboard", link: "/sys/dashboard", icon: <MdDashboard /> },
+        { title: "Register Manufacturer", link: "/sys/register", icon: <FaUser /> },
     ]
 
     return (
