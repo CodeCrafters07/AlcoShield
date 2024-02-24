@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity 0.8.18;
 
 contract QrCode {
     event ManufacturerAdded(address indexed manufacturer);
@@ -7,7 +7,7 @@ contract QrCode {
     event RetailerRemoved(uint256 indexed retailerID);
 
     event PasswordChanged(address indexed admin);
-    event ownershipTransferred(address indexed newAdmin);
+    event OwnershipTransferred(address indexed newAdmin);
 
     event ItemAdded_M(uint256 indexed id);
     event ItemDetailsUpdated_M(
@@ -17,8 +17,8 @@ contract QrCode {
     );
     event ItemRecorded_M(uint256 indexed id);
 
-    event qrHashStored(uint indexed timestamp);
-    event qrHashDeleted(uint256 _blockId);
+    event QrHashStored(uint indexed timestamp);
+    event QrHashDeleted(uint256 _blockId);
 
     struct Manufacturer {
         address manufacturer;
@@ -142,7 +142,7 @@ contract QrCode {
 
     function transferOwnership(address _address) external onlySysOwner {
         delete sysOwnerMap[owner];
-        emit ownershipTransferred(_address);
+        emit OwnershipTransferred(_address);
         owner = _address;
         sysOwnerMap[owner];
     }
@@ -232,14 +232,14 @@ contract QrCode {
 
     function storeQrHash(string memory _qrHash) external onlyManufacturer {
         uint256 timestamp = block.timestamp;
-        emit qrHashStored(timestamp);
+        emit QrHashStored(timestamp);
         qrHashMapByManufacturer[msg.sender][timestamp] = _qrHash;
         manufacturerIDHashArr.push(timestamp);
         storedIDs[timestamp] = true;
     }
 
     function deleteQrHash(uint _blockId) external onlyManufacturer {
-        emit qrHashDeleted(_blockId);
+        emit QrHashDeleted(_blockId);
         delete qrHashMapByManufacturer[msg.sender][_blockId];
         delete manufacturerIDHashArr[_blockId];
         delete storedIDs[_blockId];
