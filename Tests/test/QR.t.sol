@@ -21,6 +21,6 @@ contract CounterTest is Test {
     mapping(address => SystemOwner) private sysOwnerMap;
 
     function setUp() public {
-        qrContract = new QrCode(owner, sysowner, sysOwnerMap[owner]);
+        qrContract = new QrCode(owner, sysowner, sysOwnerMap[owner] = sysowner);
     }
 }
